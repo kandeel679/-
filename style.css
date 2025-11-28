@@ -1,0 +1,193 @@
+/* Whimsical Gothic Theme - Watercolor Overhaul */
+
+:root {
+    --midnight: #0a0a0a; /* Ink Black */
+    --soft-purple: #feb47b; /* Soft Pink */
+    --warm-orange: #ff7e5f; /* Watercolor Orange */
+    --ghostly: #fdfbf7; /* Paper White */
+}
+#riddle-input{
+    color: black;
+}
+
+/* Custom Tailwind Config Extension Simulation */
+.bg-midnight { background-color: var(--midnight); }
+.text-ghostly { color: var(--ghostly); }
+.text-warm-orange { color: var(--warm-orange); }
+.text-soft-purple { color: var(--soft-purple); }
+
+/* Fonts */
+.font-amiri { font-family: 'Amiri', serif; }
+.font-cinzel { font-family: 'Cinzel', serif; }
+.font-dancing { font-family: 'Dancing Script', cursive; }
+.font-inter { font-family: 'Inter', sans-serif; }
+
+/* Background Image */
+.watercolor-bg {
+    background-image: url('bg.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.4;
+    mix-blend-mode: screen;
+}
+
+/* Animations */
+@keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(5deg); }
+}
+
+.floating {
+    animation: float 6s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+    0%, 100% { 
+        text-shadow: 0 0 20px rgba(254, 180, 123, 0.5), 0 0 40px rgba(255, 126, 95, 0.3);
+        transform: scale(1);
+    }
+    50% { 
+        text-shadow: 0 0 40px rgba(254, 180, 123, 0.8), 0 0 80px rgba(255, 126, 95, 0.5);
+        transform: scale(1.05);
+    }
+}
+
+.noon-glow {
+    animation: pulse-glow 4s ease-in-out infinite;
+}
+
+.animate-pulse-slow {
+    animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Glassmorphism */
+.glass-panel {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+/* Parchment Style */
+.parchment {
+    background-color: rgba(253, 251, 247, 0.95);
+    color: #1a1a1a;
+    position: relative;
+}
+
+/* Text Glow */
+.drop-shadow-glow {
+    filter: drop-shadow(0 0 10px rgba(255, 126, 95, 0.5));
+}
+
+/* Input Shake Animation */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.shake {
+    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+    border-color: #ef4444 !important;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--midnight); 
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--warm-orange); 
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--soft-purple); 
+}
+
+/* Noise Texture */
+.noise-bg {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* Hide Default Cursor */
+@media (min-width: 768px) {
+    body {
+        cursor: none;
+    }
+    
+    a, button, input {
+        cursor: none;
+    }
+}
+
+/* Editorial Typography Tweaks */
+.text-editorial {
+    line-height: 1.8;
+    letter-spacing: 0.02em;
+}
+
+/* Reveal Text Animation Class */
+.reveal-text {
+    opacity: 0;
+    transform: translateY(30px);
+}
+
+/* Easter Eggs */
+.easter-egg {
+    position: absolute;
+    opacity: 0.6;
+    pointer-events: none;
+    z-index: 1;
+    font-size: 2rem;
+}
+
+/* Poem Container */
+.poem-container {
+    direction: rtl;
+    font-family: 'Amiri', serif;
+    line-height: 2.5;
+    text-align: center;
+    color: var(--ghostly);
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+/* Story Sections */
+.story-section {
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 2rem;
+    opacity: 0; /* Hidden initially for animation */
+    visibility: hidden;
+}
+
+.story-section.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Blur Reveal Effect */
+.blur-reveal {
+    filter: blur(10px);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 1s ease;
+}
+
+.blur-reveal.visible {
+    filter: blur(0);
+    opacity: 1;
+    transform: translateY(0);
+}

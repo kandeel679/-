@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en" class="overflow-x-hidden">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For You</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&family=Cinzel:wght@400;700&family=Dancing+Script:wght@700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- Theme Variables --- */
+        :root {
+            --midnight: #0a0a0a;
+            --soft-purple: #feb47b;
+            --warm-orange: #ff7e5f;
+            --ghostly: #fdfbf7;
+        }
+
+        /* --- Base Styles --- */
+        body {
+            background-color: var(--midnight);
+            color: var(--ghostly);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden; /* Prevent horizontal scroll */
+            cursor: none; /* Custom cursor */
+        }
+
+        /* --- Typography --- */
+        .font-amiri { font-family: 'Amiri', serif; }
+        .font-cinzel { font-family: 'Cinzel', serif; }
+        .font-dancing { font-family: 'Dancing Script', cursive; }
+
+        /* --- Custom Cursor --- */
+        #cursor {
+            pointer-events: none;
+            mix-blend-mode: difference;
+            z-index: 9999;
+        }
+        #cursor-dot {
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* --- Background Layers (Parallax) --- */
+        .parallax-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            will-change: transform;
+        }
+
+        .layer-bg { 
+            z-index: 0; 
+            background: url('./bg.png') no-repeat center center fixed; 
+            background-size: cover;
+            opacity: 0.3;
+            filter: brightness(0.6);
+        }
+        .layer-mid { z-index: 1; } /* Ghost Ducks */
+        .layer-front { z-index: 2; display: flex; align-items: flex-end; justify-content: space-around; opacity: 0; transform: translateY(100%); } /* Sunflowers */
+
+        /* --- The Gate (Phase 1) --- */
+        #phase-1 {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(10px);
+            transition: opacity 1s ease;
+        }
+
+        /* --- The "N" Logo --- */
+        #noon-logo {
+            position: fixed;
+            top: 35%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Amiri', serif;
+            color: var(--soft-purple);
+            z-index: 100;
+            line-height: 1;
+            text-shadow: 0 0 30px rgba(254, 180, 123, 0.3);
+        }
+
+        /* --- Scrollytelling Sections --- */
+        #scroll-container {
+            position: relative;
+            z-index: 10;
+            opacity: 0; /* Hidden until unlocked */
+            visibility: hidden;
+        }
+
+        .story-section {
+            min-height: 100vh;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 2rem;
+        }
+
+        /* --- Poem Styles --- */
+        .poem-container {
+            direction: rtl;
+            font-family: 'Amiri', serif;
+            line-height: 2.5;
+            text-align: center;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+        }
+        .poem-line {
+            opacity: 0; /* Controlled by GSAP */
+        }
+
+        /* --- Letter Styles --- */
+        .parchment {
+            background-color: rgba(253, 251, 247, 0.95);
+            color: #1a1a1a;
+            position: relative;
+            transform-style: preserve-3d;
+        }
+        .char {
+            display: inline-block; /* For SplitType animation */
+        }
+
+        /* --- Video Styles --- */
+        .video-wrapper {
+            transform: scale(0.9);
+            filter: blur(10px);
+            opacity: 0;
+            will-change: transform, filter, opacity;
+        }
+
+        /* --- Utilities --- */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+            border-color: #ef4444 !important;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        
+        /* Lenis Recommended CSS */
+        html.lenis, html.lenis body { height: auto; }
+        .lenis.lenis-smooth { scroll-behavior: auto !important; }
+        .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+        .lenis.lenis-stopped { overflow: hidden; }
+        .lenis.lenis-scrolling iframe { pointer-events: none; }
+    </style>
+</head>
+<body>
+
+    <!-- Custom Cursor -->
+    <div id="cursor" class="fixed w-8 h-8 border border-warm-orange rounded-full transform -translate-x-1/2 -translate-y-1/2 transition-transform duration-100 hidden md:block"></div>
+    <div id="cursor-dot" class="fixed w-1 h-1 bg-warm-orange rounded-full transform -translate-x-1/2 -translate-y-1/2 hidden md:block"></div>
+
+    <!-- The "N" Logo (Starts Center, Moves to Corner) -->
+    <div id="noon-logo" class="text-9xl pointer-events-none">ن</div>
+
+    <!-- Parallax Background Layers -->
+    <div class="parallax-layer layer-bg"></div>
+    
+    <div class="parallax-layer layer-mid" id="ghost-ducks">
+        <!-- Ghost Ducks scattered -->
+      
+        <div class="absolute top-1/2 left-10 text-4xl opacity-10 text-ghostly"><i class="fa-solid fa-crow"></i></div>
+        <div class="absolute bottom-20 right-10 text-4xl opacity-10 text-warm-orange"><i class="fa-solid fa-sun"></i></div>
+        <div class="absolute top-1/2 left-10 text-4xl opacity-10 text-ghostly"><i class="fa-solid fa-crow"></i></div>
+        <div class="absolute bottom-20 right-10 text-4xl opacity-10 text-warm-orange"><i class="fa-solid fa-sun"></i></div>
+        <div class="absolute top-1/2 left-10 text-4xl opacity-10 text-ghostly"><i class="fa-solid fa-crow"></i></div>
+        <div class="absolute bottom-20 right-10 text-4xl opacity-10 text-warm-orange"><i class="fa-solid fa-sun"></i></div>
+    </div>
+
+    <div class="parallax-layer layer-front" id="sunflowers">
+        <!-- Sunflowers rising from bottom -->
+        <div class="text-warm-orange text-9xl opacity-80 transform translate-y-1/2"><i class="fa-solid fa-sun animate-spin-slow"></i></div>
+        <div class="text-warm-orange text-8xl opacity-70 transform translate-y-1/3"><i class="fa-solid fa-sun"></i></div>
+        <div class="text-warm-orange text-9xl opacity-80 transform translate-y-1/2"><i class="fa-solid fa-sun"></i></div>
+    </div>
+
+    <!-- Phase 1: The Gate (Login) -->
+    <div id="phase-1">
+        <div class="glass-panel p-8 rounded-2xl max-w-md w-full mx-4 text-center border border-white/10 shadow-2xl mt-48">
+            <h2 class="font-cinzel text-2xl mb-6 text-ghostly tracking-widest">The Gatekeeper Asks</h2>
+            <p class="font-inter text-lg mb-8 text-gray-300">
+                "Enter the answer: <br>
+                <span class="font-bold text-warm-orange">(Day + Month + Year) - Year</span>"
+            </p>
+            
+            <div class="relative mb-6 group">
+                <input type="number" id="riddle-input" 
+                    class="w-full bg-black/50 border-2 border-soft-purple/30 rounded-lg py-3 px-4 text-center text-xl text-white focus:outline-none focus:border-warm-orange transition-colors placeholder-gray-600"
+                    placeholder="?">
+            </div>
+
+            <button id="hint-btn" class="text-sm text-gray-400 hover:text-soft-purple transition-colors underline decoration-dotted">
+                Need a Hint?
+            </button>
+            <div id="hint-tooltip" class="hidden mt-2 text-xs text-warm-orange italic opacity-0 transition-opacity duration-300">
+                Think of our date...
+            </div>
+        </div>
+    </div>
+
+    <!-- Phase 2: Scrollytelling Container -->
+    <div id="scroll-container">
+        
+        <!-- Section 1: The Poem -->
+        <section id="section-poem" class="story-section">
+            <h1 class="font-dancing text-6xl text-warm-orange mb-2 drop-shadow-glow ">Scroll down ya nono </h1>
+            <header class="text-center mb-12 opacity-0" id="poem-header">
+                <div class="h-1 w-24 bg-soft-purple mx-auto rounded-full"></div>
+            </header>
+            
+            <div class="poem-container text-3xl md:text-5xl space-y-8">
+                <p class="poem-line">رَجُلٌ وَمَا اِسْتَسْلَمْتُ قَبْلُ لِفَارِسٍ</p>
+                <p class="poem-line">مَالِيٍّ أَمَامَ عُيُونِهَا مُسْتَسْلِمُ !؟</p>
+                <p class="poem-line mt-8">أَأَعُودُ مُنْتَصِرًا بِكُلُّ مُعَارِكِيٍّ</p>
+                <p class="poem-line">وَأَمَامِ عَيْنِيِّهَا الْبَرِيئةِ أُهْزَمُ</p>
+            </div>
+        </section>
+
+        <!-- Section 2: The Letter -->
+        <section id="section-letter" class="story-section">
+            <article class="parchment p-8 md:p-16 rounded-lg shadow-2xl relative max-w-3xl">
+                <!-- Decorative Corner -->
+                <div class="absolute -top-6 -left-6 text-5xl text-warm-orange opacity-80">
+                    <i class="fa-solid fa-sun"></i>
+                </div>
+                
+                <div class="font-inter leading-relaxed text-gray-800 text-xl space-y-6" id="letter-content">
+                    <p class="letter-line">My Dearest Nona el mgnona ,</p>
+                    <p class="letter-line">
+                        I owe you a massive apology, especially for the way I walked away. Playing the 'Superman' role was a mistake. 
+                    </p>
+                    <p class="letter-line">
+                       You deserve to know the real reasons behind why I did what I did. I was wrong, and honestly, to hell with this 'Superman syndrome' that made me say things I can't even explain.
+                    </p>
+                    <p class="letter-line">
+                     Because look—you’re mine. Whether you like it or not, that’s just how it is. But we have to fix these problems first.
+                    </p>
+                    <p class="letter-line font-dancing text-4xl text-right mt-12 text-midnight">
+                        Yours always,<br>
+                        Youssef
+                    </p>
+                </div>
+
+                <!-- Decorative Corner -->
+                <div class="absolute -bottom-6 -right-6 text-4xl text-soft-purple opacity-80">
+                    <i class="fa-solid fa-feather"></i>
+                </div>
+            </article>
+        </section>
+
+        <!-- Section 3: The Video -->
+        <section id="section-video" class="story-section">
+            <div class="glass-panel p-4 rounded-xl border border-white/10 shadow-xl w-full max-w-4xl video-wrapper">
+                <div class="aspect-video bg-black/40 rounded-lg overflow-hidden flex items-center justify-center relative group">
+                    <video controls class="w-full h-full object-cover rounded-lg shadow-inner">
+                        <source src="./vid.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Spacer for final scroll -->
+        <div class="h-[50vh]"></div>
+
+    </div>
+
+    <!-- Libraries -->
+    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.29/bundled/lenis.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://unpkg.com/split-type"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            gsap.registerPlugin(ScrollTrigger);
+
+            // --- Lenis Smooth Scroll ---
+            const lenis = new Lenis({
+                duration: 1.2,
+                easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+                direction: 'vertical',
+                gestureDirection: 'vertical',
+                smooth: true,
+                mouseMultiplier: 1,
+                smoothTouch: false,
+                touchMultiplier: 2,
+            });
+
+            function raf(time) {
+                lenis.raf(time);
+                requestAnimationFrame(raf);
+            }
+            requestAnimationFrame(raf);
+
+            // Connect Lenis to ScrollTrigger
+            lenis.on('scroll', ScrollTrigger.update);
+            gsap.ticker.add((time) => {
+                lenis.raf(time * 1000);
+            });
+            gsap.ticker.lagSmoothing(0);
+
+            // --- Elements ---
+            const phase1 = document.getElementById('phase-1');
+            const scrollContainer = document.getElementById('scroll-container');
+            const noonLogo = document.getElementById('noon-logo');
+            const riddleInput = document.getElementById('riddle-input');
+            const hintBtn = document.getElementById('hint-btn');
+            const hintTooltip = document.getElementById('hint-tooltip');
+            const cursor = document.getElementById('cursor');
+            const cursorDot = document.getElementById('cursor-dot');
+
+            const CORRECT_ANSWER = 17;
+
+            // --- Custom Cursor ---
+            if (window.matchMedia("(min-width: 768px)").matches) {
+                window.addEventListener('mousemove', (e) => {
+                    gsap.to(cursor, { x: e.clientX, y: e.clientY, duration: 0.1, ease: "power2.out" });
+                    gsap.to(cursorDot, { x: e.clientX, y: e.clientY, duration: 0 });
+                });
+            }
+
+            // --- Riddle Logic ---
+            hintBtn.addEventListener('click', () => {
+                hintTooltip.classList.remove('hidden');
+                gsap.to(hintTooltip, { opacity: 1, duration: 0.3 });
+            });
+
+            riddleInput.addEventListener('input', (e) => {
+                if (parseInt(e.target.value) === CORRECT_ANSWER) unlockGate();
+            });
+
+            riddleInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    if (parseInt(riddleInput.value) === CORRECT_ANSWER) unlockGate();
+                    else {
+                        riddleInput.classList.add('shake');
+                        setTimeout(() => riddleInput.classList.remove('shake'), 500);
+                    }
+                }
+            });
+
+            // --- The Unlock Sequence ---
+            function unlockGate() {
+                riddleInput.disabled = true;
+                riddleInput.classList.add('border-warm-orange', 'text-warm-orange');
+
+                const tl = gsap.timeline();
+
+                // 1. Fade out Phase 1 UI (but keep Logo)
+                tl.to(phase1, { opacity: 0, duration: 1, pointerEvents: 'none' })
+                
+                // 2. Animate "N" Logo to Top-Left
+                .to(noonLogo, {
+                    top: "4rem",
+                    left: "4rem",
+                    scale: 0.3,
+                    x: 0,
+                    y: 0,
+                    duration: 1.5,
+                    ease: "power4.inOut"
+                }, "-=0.5")
+
+                // 3. Reveal Scroll Container
+                .to(scrollContainer, {
+                    opacity: 1,
+                    autoAlpha: 1,
+                    duration: 1,
+                    onStart: () => {
+                        scrollContainer.style.visibility = 'visible';
+                        initScrollytelling(); // Initialize scroll animations
+                    }
+                }, "-=1");
+            }
+
+            // --- Scrollytelling Animations ---
+            function initScrollytelling() {
+                
+                // 1. Parallax Backgrounds
+                gsap.to("#ghost-ducks", {
+                    y: -200, // Move up slowly
+                    ease: "none",
+                    scrollTrigger: {
+                        trigger: "body",
+                        start: "top top",
+                        end: "bottom bottom",
+                        scrub: true
+                    }
+                });
+
+                gsap.to("#sunflowers", {
+                    y: 0, // Rise from bottom
+                    opacity: 1,
+                    ease: "none",
+                    scrollTrigger: {
+                        trigger: "body",
+                        start: "top top",
+                        end: "bottom bottom",
+                        scrub: true
+                    }
+                });
+
+                // 2. Poem Reveal (Pinned)
+                const poemLines = document.querySelectorAll('.poem-line');
+                const poemTl = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: "#section-poem",
+                        start: "top top",
+                        end: "+=150%", // Pin duration
+                        pin: true,
+                        scrub: 1,
+                        anticipatePin: 1
+                    }
+                });
+
+                // Header fade in
+                poemTl.to("#poem-header", { opacity: 1, duration: 1 });
+
+                // Lines reveal
+                poemLines.forEach((line, i) => {
+                    poemTl.fromTo(line, 
+                        { opacity: 0, filter: "blur(10px)", y: 20 },
+                        { opacity: 1, filter: "blur(0px)", y: 0, duration: 2, ease: "power2.out" },
+                        i * 1.5 // Stagger
+                    );
+                });
+
+                // Fade out poem at end
+                poemTl.to(".poem-container", { opacity: 0, duration: 1 }, "+=1");
+
+
+                // 3. Letter Reveal (SplitType)
+                // Split text into lines/words
+                const letterText = new SplitType('.letter-line', { types: 'lines, words' });
+                
+                gsap.from(letterText.words, {
+                    scrollTrigger: {
+                        trigger: "#section-letter",
+                        start: "top 60%",
+                        end: "bottom 80%",
+                        scrub: 1
+                    },
+                    y: 20,
+                    opacity: 0,
+                    stagger: 0.05,
+                    ease: "power2.out"
+                });
+
+
+                // 4. Video Reveal (Cinematic)
+                gsap.to(".video-wrapper", {
+                    scrollTrigger: {
+                        trigger: "#section-video",
+                        start: "top center",
+                        end: "center center",
+                        scrub: 1
+                    },
+                    scale: 1,
+                    filter: "blur(0px)",
+                    opacity: 1,
+                    ease: "power2.out"
+                });
+            }
+        });
+    </script>
+</body>
+</html>
